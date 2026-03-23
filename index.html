@@ -1,1 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PDF 본문 번역기</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; line-height: 1.6; }
+        .container { border: 2px dashed #ccc; padding: 30px; text-align: center; border-radius: 10px; }
+        #result { margin-top: 30px; padding: 20px; background: #f9f9f9; border-left: 5px solid #007bff; white-space: pre-wrap; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
+        button:disabled { background: #ccc; }
+        .loading { display: none; color: #555; }
+    </style>
+</head>
+<body>
+    <h2>📄 PDF 본문 AI 번역기</h2>
+    <p>PDF를 업로드하면 헤더/푸터를 제외하고 본문만 번역해 드립니다.</p>
 
+    <div class="container">
+        <input type="file" id="pdfFile" accept=".pdf"><br><br>
+        <button onclick="uploadAndTranslate()" id="btn">번역 시작하기</button>
+        <div id="loading" class="loading">AI가 본문을 분석하고 번역 중입니다... (최대 1분 소요)</div>
+    </div>
+
+    <div id="result" style="display: none;">
+        <h3>✅ 번역 결과</h3>
+        <div id="translatedText"></div>
+    </div>
+
+    <script>
+        async function uploadAndTranslate() {
+            const fileInput = document.getElementById('pdfFile');
+            const btn = document.getElementById('btn');
+            const loading = document.getElementById('loading');
+            const resultDiv = document.getElementById('result');
+            const textDiv = document.getElementById('translatedText');
+
+            if (!fileInput.files[0]) return alert("파일을 선택해주세요!");
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            // UI 상태 변경
+            btn.disabled = true;
+            loading.style.display = "block";
+            resultDiv.style.display = "none";
+
+            try {
+                // 백엔드 주소 (로컬 실행 시 http://localhost:8000/translate)
+                const response = await fetch("http://localhost:8000/translate", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+                
+                textDiv.innerText = data.translated_text;
+                resultDiv.style.display = "block";
+            } catch (error) {
+                alert("번역 중 오류가 발생했습니다.");
+            } finally {
+                btn.disabled = false;
+                loading.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
